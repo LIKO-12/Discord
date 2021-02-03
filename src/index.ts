@@ -8,7 +8,7 @@ const client = new Discord.Client({
 	presence: {
 		status: 'online',
 		activity: {
-			name: "VSCode",
+			name: ".method",
 			type: 'WATCHING'
 		}
 	}

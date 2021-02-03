@@ -57,7 +57,7 @@ client.on('message', (message) => {
 			const embed = createMethodEmbed(selectedMatch.peripheral, selectedMatch.object, selectedMatch.name, selectedMatch.method, usageId);
 			const extendFooter = `Didn't find an exact match for '${args[0]}' but instead found a longer match.`
 			embed.footer = embed.footer ?? {};
-			embed.footer.text = embed.footer ? `${embed.footer}\n${extendFooter}` : extendFooter;
+			embed.footer.text = embed.footer.text ? `${embed.footer.text}\n${extendFooter}` : extendFooter;
 			message.channel.send('', embed);
 			return
 		}

@@ -213,7 +213,7 @@ for (const peripheralName in api.engine.Peripherals) {
                     if (method.self) methodsIndex[`${peripheralName}/${objectName}:${methodName}`.toLowerCase()] = result;
 
                     methodsIndex[`${objectName}.${methodName}`.toLowerCase()] = result;
-                    if (method.self) methodsIndex[`${peripheralName}:${methodName}`.toLowerCase()] = result;
+                    if (method.self) methodsIndex[`${objectName}:${methodName}`.toLowerCase()] = result;
                 }
             }
         }

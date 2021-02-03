@@ -29,8 +29,10 @@ client.on('message', (message) => {
 	if (command === '.method') {
 		const methodName = args[0]?.toLowerCase();
 		const usageId = Number.parseInt(args[1] ?? '-1');
-		
+
 		if (!methodName) return message.channel.send('', methodUsageEmbed.setFooter(`@${message.author.username}#${message.author.discriminator}`));
+
+		const plainName = !(/[\.:]/.test(methodName));
 
 		let selectedMatch = undefined;
 		const shorterMatches = [], longerMatches = [];
@@ -41,11 +43,13 @@ client.on('message', (message) => {
 				break;
 			}
 
-			//Longer match
-			if (index.includes(methodName)) longerMatches.push(methodsIndex[index]);
+			if (!plainName || !/[\.:]/.test(index)) {
+				//Longer match
+				if (index.includes(methodName)) longerMatches.push(methodsIndex[index]);
 
-			//Shorter match
-			if (methodName.includes(index)) shorterMatches.push(methodsIndex[index]);
+				//Shorter match
+				if (methodName.includes(index)) shorterMatches.push(methodsIndex[index]);
+			}
 		}
 
 		//Found an exact match

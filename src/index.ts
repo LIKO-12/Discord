@@ -1,7 +1,6 @@
 import Discord from 'discord.js';
 
 import config from './config';
-import * as api from './lib/liko-api';
 import { createMethodEmbed, methodsIndex } from './lib/doc-utils';
 
 const client = new Discord.Client({
@@ -69,7 +68,7 @@ client.on('message', (message) => {
 			const embed = createMethodEmbed(selectedMatch.peripheral, selectedMatch.object, selectedMatch.name, selectedMatch.method, usageId);
 			const extendFooter = `Didn't find an exact match for '${args[0]}' but instead found a shorter match.`
 			embed.footer = embed.footer ?? {};
-			embed.footer.text = embed.footer ? `${embed.footer}\n${extendFooter}` : extendFooter;
+			embed.footer.text = embed.footer.text ? `${embed.footer.text}\n${extendFooter}` : extendFooter;
 			message.channel.send('', embed);
 			return
 		}

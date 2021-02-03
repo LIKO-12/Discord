@@ -12,4 +12,4 @@ node_modules
 dist
 
 # Config
-src/config.ts
+config.ts

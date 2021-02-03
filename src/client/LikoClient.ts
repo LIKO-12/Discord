@@ -24,7 +24,7 @@ class LikoClient extends AkairoClient {
 			}
 		}, options);
 
-		super(options);
+		super(options /* prop better way to do this */, { ws: { intents: options.intents } });
 
 		this.prefix = options.prefix;
 		this.token = options.token;

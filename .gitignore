@@ -7,3 +7,9 @@
 
 # Node
 node_modules
+
+# TypeScript
+dist
+
+# Config
+src/config.ts

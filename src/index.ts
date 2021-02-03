@@ -23,16 +23,6 @@ methodUsageEmbed.title = 'Usage:';
 methodUsageEmbed.description = "```css\n.method <method_name> [usage_id]\n```";
 
 client.on('message', (message) => {
-	if (message.content === '.test') {
-		const method = api.engine.Peripherals.GPU?.methods?._systemMessage as api.SingleUsageMethod;
-		message.channel.send('', createMethodEmbed('GPU', undefined, '_systemMessage', method));
-
-		const method2 = api.engine.Peripherals.GPU?.methods?.print as api.MultiUsageMethod;
-		message.channel.send('', createMethodEmbed('GPU', undefined, 'print', method2));
-		message.channel.send('', createMethodEmbed('GPU', undefined, 'print', method2, 1));
-		message.channel.send('', createMethodEmbed('GPU', undefined, 'print', method2, 0));
-	}
-
 	const args = message.content.split(' ');
 	const command = args.shift()?.toLowerCase();
 

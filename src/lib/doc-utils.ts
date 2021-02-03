@@ -195,6 +195,7 @@ for (const peripheralName in api.engine.Peripherals) {
         for (const methodName in peripheral.methods) {
             const method = peripheral.methods[methodName];
             const result = { peripheral: peripheralName, object: undefined, name: methodName, method, formatted: `${peripheralName}${method.self ? ':' : '.'}${methodName}` };
+            methodsIndex[methodName.toLowerCase()] = result;
             methodsIndex[`${peripheralName}.${methodName}`.toLowerCase()] = result;
             if (method.self) methodsIndex[`${peripheralName}:${methodName}`.toLowerCase()] = result;
         }

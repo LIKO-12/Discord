@@ -97,4 +97,8 @@ client.on('interactionCreate', async interaction => {
   };
 });
 
+const stop = () => client.destroy();
+process.on('SIGINT', stop);
+process.on('SIGTERM', stop);
+
 client.login(config.botToken);

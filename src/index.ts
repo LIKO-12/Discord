@@ -1,7 +1,17 @@
 import { Client, Intents } from 'discord.js';
 import config from './config';
 
-const client: Client = new Client({ intents: [] });
+
+const client: Client = new Client({
+  intents: [],
+  presence: {
+    status: 'online',
+    activities: [{
+      name: ".method",
+      type: 'WATCHING'
+    }]
+  }
+});
 
 client.once('ready', () => {
 	console.log('Ready!');

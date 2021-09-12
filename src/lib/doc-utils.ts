@@ -101,11 +101,7 @@ function formatReturns(returns: api.ReturnValue[]): string {
 
 /**
  * Creates a Discord embed for a method's documentation.
- * @param peripheral The peripheral which the object/method belongs to.
- * @param object (Optional) The object's name which the method belongs to. (undefined) if the method belongs to the peripheral directly.
- * @param name The name of the method.
- * @param method The method's documentation.
- * @param usageId (Optional) The id of the usage to display, if it's a multi-usage method.
+ * @param opts Method object with usageId containing method's properties.
  * @returns The created discord embed.
  */
 export function createMethodEmbed(/*peripheral: string, object: string | undefined, name: string, method: api.LuaMethod, usageId?: number | undefined*/opts: { peripheral: string, object: string | undefined, name: string, method: api.LuaMethod, usageId?: number | undefined  }): Discord.MessageEmbed { // TODO: requires more comments, and more cleaning

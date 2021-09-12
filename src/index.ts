@@ -3,6 +3,14 @@ import { createMethodEmbed, methodsIndex } from './lib/doc-utils';
 
 import config from './config';
 
+// TODO: these functions might belong to doc-utils
+function isComplex(name: string): boolean {
+  return /[\.:]/.test(name); // caching this regex would have minimal performance increase.
+}
+
+function generateMatchesList(matches: { formatted: string }[]): string { // to lazy to have the method object type
+  return matches.map(match => `- \`${match.formatted}\``).join('\n');
+}
 
 const client: Discord.Client = new Discord.Client({
   intents: [],
@@ -35,65 +43,53 @@ client.on('interactionCreate', async interaction => {
     const methodName = interaction.options.getString('method_name', true);
     const usageId = interaction.options.getInteger('usage_id', false) ?? -1;
 
-    // if (!methodName) return message.channel.send('', methodUsageEmbed.setFooter(`@${message.author.username}#${message.author.discriminator}`));
+    let shorterMatches = [], longerMatches = [];
 
-    const plainName = !(/[\.:]/.test(methodName));
-
-    let selectedMatch = undefined;
-    const shorterMatches = [], longerMatches = [];
+    const complexName = isComplex(methodName); // cahcing whether the methodName is complex
+    // iterate over all the methods.
     for (const index in methodsIndex) {
-      //Found an exact match
+      const method = methodsIndex[index];
+      // check whether it's a exact match.
       if (index === methodName) {
-        selectedMatch = methodsIndex[index];
-        break;
+        return interaction.reply({ embeds: [createMethodEmbed({ ...method, usageId })] });
       }
-
-      if (!plainName || !/[\.:]/.test(index)) {
-        //Longer match
-        if (index.includes(methodName)) longerMatches.push(methodsIndex[index]);
-
-        //Shorter match
-        if (methodName.includes(index)) shorterMatches.push(methodsIndex[index]);
+      else if (complexName || !isComplex(index)) {
+        if (index.includes(methodName)) longerMatches.push(method); // found a longer match
+        else if (longerMatches.length === 0 /* small speed improvement */ && methodName.includes(index)) shorterMatches.push(method) // found a single shorter match incase no longer matches are found
       }
     }
 
-    //Found an exact match
-    if (selectedMatch) return interaction.reply({ embeds: [createMethodEmbed(selectedMatch.peripheral, selectedMatch.object, selectedMatch.name, selectedMatch.method, usageId)] });
-
-    //Found a single longer match. this code is ugly ngl.
-    if (longerMatches.length === 1) {
-      selectedMatch = longerMatches[0];
-      const embed = createMethodEmbed(selectedMatch.peripheral, selectedMatch.object, selectedMatch.name, selectedMatch.method, usageId);
+    if (longerMatches.length === 1) { // has one longer match
+      const embed = createMethodEmbed({ ...longerMatches[0], usageId });
       const extendFooter = `Didn't find an exact match for '${methodName}' but instead found a longer match.`
+
       embed.setFooter(embed.footer?.text ? `${embed.footer.text}\n${extendFooter}` : extendFooter);
-      interaction.reply({ embeds: [embed] });
-      return
+
+      return interaction.reply({ embeds: [embed] });
+
+    }
+    else if (shorterMatches.length === 1) { // or has one shorter match
+			const embed = createMethodEmbed({ ...shorterMatches[0], usageId });
+			const extendFooter = `Didn't find an exact match for '${methodName}' but instead found a shorter match.`
+      
+			embed.setFooter(embed.footer?.text ? `${embed.footer.text}\n${extendFooter}` : extendFooter);
+
+      return interaction.reply({ embeds: [embed] });
     }
 
-    //No longer matches, and a single shorter match
-    if (longerMatches.length === 0 && shorterMatches.length === 1) {
-      selectedMatch = shorterMatches[0];
-      const embed = createMethodEmbed(selectedMatch.peripheral, selectedMatch.object, selectedMatch.name, selectedMatch.method, usageId);
-      const extendFooter = `Didn't find an exact match for '${methodName}' but instead found a shorter match.`
-      embed.footer = embed.footer ?? {};
-      embed.footer.text = embed.footer.text ? `${embed.footer.text}\n${extendFooter}` : extendFooter;
-      interaction.reply({ embeds: [embed] });
-      return
+    const failEmbed = new Discord.MessageEmbed();
+
+    if (longerMatches.length + shorterMatches.length === 0) failEmbed.setTitle('No results found ⚠')
+    else {
+      failEmbed
+        .setTitle('No exact match')
+        .setDescription('But found those shorter/longer matches:');
+
+      if (longerMatches.length !== 0) failEmbed.addField('Longer matches', generateMatchesList(longerMatches));
+      if (shorterMatches.length !== 0) failEmbed.addField('Shorter matches', generateMatchesList(shorterMatches));
     }
 
-    const embed = new Discord.MessageEmbed();
-
-    if (shorterMatches.length === 0 && longerMatches.length === 0) {
-      embed.title = 'No results found ⚠';
-    } else {
-      embed.title = 'No exact match';
-      embed.description = 'But found those shorter/longer matches:';
-
-      if (longerMatches.length > 0) embed.addField('Longer matches', longerMatches.map(match => `- \`${match.formatted}\``).join('\n'));
-      if (shorterMatches.length > 0) embed.addField('Shorter matches', shorterMatches.map(match => `- \`${match.formatted}\``).join('\n'));
-    }
-
-    interaction.reply({ embeds: [embed] });
+    return interaction.reply({ embeds: [failEmbed] });
   };
 });
 

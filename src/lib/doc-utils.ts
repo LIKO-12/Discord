@@ -101,62 +101,51 @@ function formatReturns(returns: api.ReturnValue[]): string {
 
 /**
  * Creates a Discord embed for a method's documentation.
- * @param peripheral The peripheral which the object/method belongs to.
- * @param object (Optional) The object's name which the method belongs to. (undefined) if the method belongs to the peripheral directly.
- * @param name The name of the method.
- * @param method The method's documentation.
- * @param usageId (Optional) The id of the usage to display, if it's a multi-usage method.
+ * @param opts Method object with usageId containing method's properties.
  * @returns The created discord embed.
  */
-export function createMethodEmbed(peripheral: string, object: string | undefined, name: string, method: api.LuaMethod, usageId?: number | undefined): Discord.MessageEmbed {
-    const embed = new Discord.MessageEmbed();
-
-    embed.color = 0xFAA21B;
-
-    embed.author = {
-        name: "LIKO-12's Docs",
-        url: 'https://github.com/LIKO-12/API-Documentation',
-        iconURL: 'https://github.com/LIKO-12/Extras/raw/master/Icon/icon-square.png'
-    }
-
-    embed.title = `${object ?? peripheral}${method.self ? ':' : '.'}${name}`;
-    if (object !== undefined) embed.title = `${object}/${embed.title}`;
-
-    if (object === undefined) embed.url = `https://liko-12.github.io/WIP/docs/${`peripherals_${peripheral}#${peripheral}${name}`.toLowerCase()}`;
-    else embed.url = `https://liko-12.github.io/WIP/docs/${`peripherals_${peripheral}_${object}#${object}${name}`.toLowerCase()}`;
-
-    embed.description = method.shortDescription ?? '';
-    if (method.longDescription !== undefined) embed.description += '\n' + method.longDescription;
+export function createMethodEmbed(/*peripheral: string, object: string | undefined, name: string, method: api.LuaMethod, usageId?: number | undefined*/opts: { peripheral: string, object: string | undefined, name: string, method: api.LuaMethod, usageId?: number | undefined  }): Discord.MessageEmbed { // TODO: requires more comments, and more cleaning
+    const { peripheral, object, name, method, usageId } = opts;
+    const embed = new Discord.MessageEmbed()
+        .setColor(0xFAA21B)
+        .setAuthor('LIKO-12\'s Docs', 'https://github.com/LIKO-12/Extras/raw/master/Icon/icon-square.png', 'https://github.com/LIKO-12/API-Documentation')
+        .setTitle(`${object ?? ''}${object ?? peripheral}${method.self ? ':' : '.'}${name}`)
+        .setURL(object ? `https://liko-12.github.io/WIP/docs/${`peripherals_${peripheral}_${object}#${object}${name}`.toLowerCase()}` : `https://liko-12.github.io/WIP/docs/${`peripherals_${peripheral}#${peripheral}${name}`.toLowerCase()}`);
+    
+    let description = `${method.shortDescription ?? ''}${method.longDescription ? '\n' + method.longDescription : ''}`;
 
     if (method.notes !== undefined) embed.addField('Notes:', '\n> ' + method.notes.map(note => '• ' + note.replace(/\n/g, '\n> ')).join('\n> '));
 
-    if (api.isSingleUsageMethod(method)) {
-        embed.description += `\n\`\`\`lua\n${generateExampleCode(object ?? peripheral, name, method.self, method.arguments, method.returns)}\n\`\`\``;
+    if (api.isSingleUsageMethod(method)) { // there is just one usage method
+        description += `\n\`\`\`lua\n${generateExampleCode(object ?? peripheral, name, method.self, method.arguments, method.returns)}\n\`\`\``;
 
         if (method.arguments !== undefined) embed.addField('Arguments:', formatArguments(method.arguments));
         if (method.returns !== undefined) embed.addField('Returns:', formatReturns(method.returns));
-    } else if (usageId !== undefined && method.usages[usageId - 1] !== undefined) {
+    } else if (usageId !== undefined && method.usages[usageId - 1] !== undefined) { // the user selected usage with usage id
         const usage = method.usages[usageId - 1];
-        embed.description += `\n\n**${usageId}. ${usage.name}:**`;
-        if (usage.shortDescription) embed.description += '\n' + usage.shortDescription;
-        if (usage.longDescription) embed.description += '\n' + usage.longDescription;
+        description += `\n\n**${usageId}. ${usage.name}:**`;
+        if (usage.shortDescription) description += '\n' + usage.shortDescription;
+        if (usage.longDescription) description += '\n' + usage.longDescription;
 
-        embed.description += `\n\`\`\`lua\n${generateExampleCode(object ?? peripheral, name, method.self, usage.arguments, usage.returns)}\n\`\`\``;
+        description += `\n\`\`\`lua\n${generateExampleCode(object ?? peripheral, name, method.self, usage.arguments, usage.returns)}\n\`\`\``;
 
         if (usage.notes !== undefined) embed.addField('> ', usage.notes.map(note => '• ' + note.replace(/\n/g, '\n> ')).join('\n> '));
         if (usage.arguments !== undefined) embed.addField('Arguments:', formatArguments(usage.arguments));
         if (usage.returns !== undefined) embed.addField('Returns:', formatReturns(usage.returns));
         if (usage.extra !== undefined) embed.addField('Usage extra information:', usage.extra);
-    } else {
-        let id = 1;
-        for (const usage of method.usages) {
-            let description: string = usage.shortDescription ?? '';
-            if (usageId === 0 && usage.longDescription) description += '\n' + usage.longDescription;
-            description += `\`\`\`lua\n${generateExampleCode(object ?? peripheral, name, method.self, usage.arguments, usage.returns)}\n\`\`\``;
-            if (usage.notes !== undefined) description += `\n>` + usage.notes.map(note => '• ' + note.replace(/\n/g, '\n> ')).join('\n> ');
+    } else { // if there is multiple usage's and none selected 
+        for (let i = 0; i < method.usages.length; i++) {
+            const usage = method.usages[i];
+            let usageDescription: string = usage.shortDescription ?? '';
 
-            description.replace(/^\n*/g, ''); //Clear leading new lines.
-            embed.addField(`${id++}. ${usage.name}`, description);
+            // idk how this code could possibly run.
+            // if (usageId === 0 && usage.longDescription) usageDescription += '\n' + usage.longDescription;
+            
+            usageDescription += `\`\`\`lua\n${generateExampleCode(object ?? peripheral, name, method.self, usage.arguments, usage.returns)}\n\`\`\``;
+            if (usage.notes !== undefined) usageDescription += `\n>` + usage.notes.map(note => '• ' + note.replace(/\n/g, '\n> ')).join('\n> ');
+
+            usageDescription = usageDescription.replace(/^\n*/g, ''); //Clear leading new lines.
+            embed.addField(`${i+1}. ${usage.name}`, usageDescription);
 
             if (usageId === 0) {
                 if (usage.arguments !== undefined) embed.addField('Arguments:', formatArguments(usage.arguments));
@@ -165,10 +154,11 @@ export function createMethodEmbed(peripheral: string, object: string | undefined
             }
         }
 
-        if (usageId !== 0) embed.footer = { text: `Use '.method ${embed.title} [number]' to view a specific usage's documentation\nUse '.method ${embed.title} 0' to view them all'` }
+        if (usageId !== 0) embed.setFooter(`Use '.method ${embed.title} [number]' to view a specific usage's documentation\nUse '.method ${embed.title} 0' to view them all`);
     }
 
-    embed.description?.replace(/^\n*/g, ''); //Clear leading new lines.
+    description?.replace(/^\n*/g, ''); //Clear leading new lines.
+    embed.setDescription(description);
 
     if (method.extra !== undefined) embed.addField('Extra information:', method.extra);
 

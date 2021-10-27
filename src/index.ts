@@ -27,10 +27,6 @@ client.once('ready', () => {
   console.log('Ready!');
 });
 
-// const methodUsageEmbed = new Discord.MessageEmbed()
-//   .setTitle('Usage')
-//   .setDescription('```css\n.method <method_name> [usage_id]\n```');
-
 client.on('interactionCreate', async interaction => {
   if (!interaction.isCommand()) return;
 

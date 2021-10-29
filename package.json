@@ -6,7 +6,9 @@
     "build": "tsc",
     "start": "node dist/index.js",
     "dev-deploy-commands": "ts-node src/deploy-commands.js",
-    "deploy-commands": "node dist/deploy-commands.js"
+    "deploy-commands": "node dist/deploy-commands.js",
+    "docker-build": "docker build -t liko-bot .",
+    "docker-run": "docker run -d liko-bot"
   },
   "dependencies": {
     "@discordjs/builders": "^0.6.0",
